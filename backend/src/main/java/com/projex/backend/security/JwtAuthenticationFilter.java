@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -33,13 +34,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        // Continue filter chain if no Authorization header
+        // Continue filter chain if Authorization header is missing or invalid
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        String token = authHeader.substring(7);
         String email = null;
         Map<String, Object> claims = null;
 
@@ -52,19 +53,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.out.println("❌ Invalid Token: " + e.getMessage());
         }
 
-        // Validate token and set Security Context
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
             if (jwtUtil.validateToken(token)) {
-                var authToken = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                // ✅ Debugging: Print extracted claims (optional)
                 System.out.println("✅ Authenticated User: " + email);
                 System.out.println("🔹 User Details from Token: " + claims);
             }

@@ -1,9 +1,8 @@
 package com.projex.backend.util;
 
 import com.projex.backend.model.User;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -11,8 +10,6 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
@@ -49,23 +46,24 @@ public class JwtUtil {
      * Extracts the email (subject) from the JWT token.
      */
     public String extractEmail(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return extractClaims(token).getSubject();
     }
 
     /**
      * Extracts all claims (id, username, fullName, profilePicture) from the JWT token.
      */
-    public Map<String, Object> extractClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public Claims extractClaims(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            throw new JwtException("⚠️ Token expired: " + e.getMessage());
+        } catch (JwtException e) {
+            throw new JwtException("❌ Invalid Token: " + e.getMessage());
+        }
     }
 
     /**
