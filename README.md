@@ -1,6 +1,6 @@
-# Projex - Student Project Collaboration Platform
+# CSConnect - Student Project Collaboration Platform
 
-A modern web platform built with Next.js and Spring Boot that connects CS/SWE students for collaborative project development. Projex aims to bridge the gap between academic learning and real-world experience by facilitating project-based learning and team collaboration.
+A modern web platform built with Next.js and Spring Boot that connects CS/SWE students for collaborative project development. CSConnect aims to bridge the gap between academic learning and real-world experience by facilitating project-based learning and team collaboration.
 
 ## 🎯 Mission
 
@@ -38,8 +38,8 @@ To empower CS and Software Engineering students to gain practical experience thr
 ### Frontend Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/projex.git
-   cd projex/frontend
+   git clone https://github.com/your-repo/CSConnect.git
+   cd CSConnect/frontend
    ```
 2. Install dependencies:
    ```bash
@@ -58,7 +58,7 @@ To empower CS and Software Engineering students to gain practical experience thr
 ### Backend Setup
 1. Navigate to the backend directory:
    ```bash
-   cd projex/backend
+   cd CSConnect/backend
    ```
 2. Set up environment variables:
    ```bash
@@ -73,11 +73,11 @@ To empower CS and Software Engineering students to gain practical experience thr
 ### Database Setup
 1. Install PostgreSQL and create a database:
    ```sql
-   CREATE DATABASE projex_db;
+   CREATE DATABASE CSConnect_db;
    ```
 2. Update `application.properties`:
    ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/projex_db
+   spring.datasource.url=jdbc:postgresql://localhost:5432/CSConnect_db
    spring.datasource.username=your_username
    spring.datasource.password=your_password
    ```
@@ -85,7 +85,7 @@ To empower CS and Software Engineering students to gain practical experience thr
 ## 📁 Project Structure
 
 ```
-projex/
+CSConnect/
 ├── frontend/
 │   ├── src/
 │   │   ├── app/ # Next.js 13+ App Router
@@ -99,7 +99,7 @@ projex/
 ├── backend/
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/com/projex/ # Backend source code
+│   │   │   ├── java/com/CSConnect/ # Backend source code
 │   │   │   ├── controllers/ # REST controllers
 │   │   │   ├── services/ # Business logic
 │   │   │   ├── repositories/ # Database interactions
