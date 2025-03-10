@@ -34,22 +34,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable()) // ✅ Disable CSRF for stateless JWT authentication
+                .csrf(csrf -> csrf.disable()) //  Disable CSRF for stateless JWT authentication
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/public/**").permitAll()  // ✅ Allow auth & public routes
-                        .anyRequest().authenticated()  // ✅ Secure all other routes
+                        .requestMatchers("/auth/**", "/public/**").permitAll()  //  Allow auth & public routes
+                        .anyRequest().authenticated()  //  Secure all other routes
                 )
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)) // ✅ Handle unauthorized access
-                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))  // ✅ Use stateless session
-                .authenticationProvider(authenticationProvider())  // ✅ Set authentication provider
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // ✅ Register JWT filter
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)) //  Handle unauthorized access
+                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))  //  Use stateless session
+                .authenticationProvider(authenticationProvider())  //  Set authentication provider
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) //  Register JWT filter
                 .build();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(customUserDetailsService); // ✅ Use CustomUserDetailsService
+        authProvider.setUserDetailsService(customUserDetailsService); //  Use CustomUserDetailsService
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }

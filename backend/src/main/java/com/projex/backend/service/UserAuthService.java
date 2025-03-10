@@ -29,6 +29,10 @@ public class UserAuthService {
     @Autowired
     private CustomUserDetailsService userDetailsService;  // Inject the dedicated service
 
+    public String generateTokenForUser(User user) {
+        return jwtUtil.generateToken(user);
+    }
+
     public Map<String, String> authenticateUser(String email, String password) {
         Optional<User> user = userRepository.findByEmail(email);
 
@@ -36,10 +40,10 @@ public class UserAuthService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        // ✅ Generate JWT Token
+        // Generate JWT Token
         String token = jwtUtil.generateToken(user.get());
 
-        // ✅ Return token + user info
+        //  Return token + user info
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
         response.put("userId", user.get().getId().toString());
