@@ -1,3 +1,12 @@
 spring.datasource.url=jdbc:postgresql://your-db-host:5432/projex
 spring.datasource.username=your-username
 spring.datasource.password=your-password
+
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+jwt.secret=your-secret-key
+jwt.expiration=8640000
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIEND_SECRET=your-google-client-secret
