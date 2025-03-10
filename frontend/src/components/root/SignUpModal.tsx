@@ -16,11 +16,13 @@ interface SignUpModalProps {
 const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
     const { openModal } = useModal();
     const [step, setStep] = useState(1);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [fullName, setFullName] = useState('');
-    const [username, setUsername] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        fullName: '',
+        username: '',
+    });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -50,25 +52,25 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
 
     const handleCreateAccount = () => {
         if (step === 2) {
-            if (!isValidEmail(email)) {
+            if (!isValidEmail(formData.email)) {
                 setError('Please enter a valid email address.');
                 return;
             }
-            if (!isValidPassword(password)) {
+            if (!isValidPassword(formData.password)) {
                 setError('Password must be at least 8 characters and contain a number.');
                 return;
             }
-            if (password !== confirmPassword) {
+            if (formData.password !== formData.confirmPassword) {
                 setError('Passwords do not match.');
                 return;
             }
             setError(null);
             setStep(3);
         } else if (step === 3) {
-            if (!fullName.trim()) {
+            if (!formData.fullName.trim()) {
                 setError('Please enter your full name.');
                 return;
-            } else if (existingUsernames.includes(username)) {
+            } else if (existingUsernames.includes(formData.username)) {
                 setError("This username already exists.")
                 return;
             }
@@ -83,6 +85,13 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
     };
 
     const handleEmailSignUp = () => {
+        setFormData({
+            email: '',
+            password: '',
+            confirmPassword: '',
+            fullName: '',
+            username: '',
+        });
         setStep(2);
     };
 
@@ -192,8 +201,8 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                                         type="email"
                                         id="email"
                                         placeholder="Enter your email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         className="w-full border border-gray-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-1 focus:ring-gray-400"
                                     />
                                 </div>
@@ -207,8 +216,8 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                                             type={showPassword ? 'text' : 'password'}
                                             id="password"
                                             placeholder="Enter your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             className="w-full border border-gray-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-10"
                                         />
                                         <button
@@ -230,8 +239,8 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                                             type={showConfirmPassword ? 'text' : 'password'}
                                             id="confirm-password"
                                             placeholder="Confirm your password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            value={formData.confirmPassword}
+                                            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                             className="w-full border border-gray-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-10"
                                         />
                                         <button
@@ -256,8 +265,8 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                                         type="text"
                                         id="full-name"
                                         placeholder="Enter your full name"
-                                        value={fullName}
-                                        onChange={(e) => setFullName(e.target.value)}
+                                        value={formData.fullName}
+                                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                         className="w-full border border-gray-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-1 focus:ring-gray-400"
                                     />
                                 </div>
@@ -270,8 +279,8 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                                         type="text"
                                         id="username"
                                         placeholder="Enter your username"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
+                                        value={formData.username}
+                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                         className="w-full border border-gray-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-1 focus:ring-gray-400"
                                     />
                                 </div>

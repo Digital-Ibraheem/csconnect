@@ -14,32 +14,47 @@ interface LoginModalProps {
 const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     const { login } = useAuth();
     const { closeModal, openModal } = useModal(); // Use the modal context
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+    });
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string | null>(null);
     const [showEmailForm, setShowEmailForm] = useState(false);
 
-    const handleLogin = () => {
-        if (!email || !password) {
-            setError('Please fill in both fields.');
-            return;
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        console.log(formData)
+
+        try {
+            const response = await fetch("http://localhost:8080/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                throw new Error("Invalid email or password");
+            }
+
+            const data = await response.json();
+            login(data.token);
+            closeModal();
+        } catch (err: any) {
+            setError(err.message || "Something went wrong");
         }
-
-        // Simulate authentication (replace this with API call later)
-        const mockUser = { id: 1, name: "John Doe", email, avatar: "https://randomuser.me/api/portraits/men/1.jpg", username: "johndoe101" };
-
-        login(mockUser);
-        closeModal(); // Use the context method
     };
 
     const handleGoogleLogin = () => {
-        // This would typically integrate with Google OAuth
-        console.log('Login with Google');
-        // For now, we'll just simulate a login
-        const mockUser = { id: 2, name: "Google User", email: "google@example.com", avatar: "https://randomuser.me/api/portraits/men/2.jpg", username: "googleuser" };
-        login(mockUser);
-        closeModal();
+        // // This would typically integrate with Google OAuth
+        // console.log('Login with Google');
+        // // For now, we'll just simulate a login
+        // const mockUser = { id: 2, name: "Google User", email: "google@example.com", avatar: "https://randomuser.me/api/portraits/men/2.jpg", username: "googleuser" };
+        // login(mockUser);
+        // closeModal();
     };
 
     const handleEmailLogin = () => {
@@ -142,7 +157,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                                 </button>
                             </div>
                         ) : (
-                            <>
+                            <form onSubmit={handleLogin} className="mt-8 flex flex-col gap-4">
                                 {/* Email Input */}
                                 <div className="mt-4">
                                     <label htmlFor="email" className="text-gray-700 text-sm font-medium">
@@ -152,8 +167,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                                         type="email"
                                         id="email"
                                         placeholder="Enter your email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         className="w-full border border-gray-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-1 focus:ring-gray-400"
                                     />
                                 </div>
@@ -168,8 +183,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                                             type={showPassword ? 'text' : 'password'}
                                             id="password"
                                             placeholder="Enter your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             className="w-full border border-gray-300 rounded-md p-2 mt-1 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-10"
                                         />
                                         <button
@@ -184,13 +199,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
 
                                 {/* Forgot Password */}
                                 <div className="mt-3 text-right">
-                                    <button className="text-sm text-gray-500 hover:text-gray-700">Forgot password?</button>
+                                    <button type="button" className="text-sm text-gray-500 hover:text-gray-700">Forgot password?</button>
                                 </div>
                                 {/* Login Button */}
-                                <Button inverted className="w-full mt-6" onClick={handleLogin}>
+                                <Button submit inverted className="w-full mt-6">
                                     Continue
                                 </Button>
-                            </>
+                            </form>
                         )}
                     </div>
 
