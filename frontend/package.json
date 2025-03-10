@@ -11,7 +11,7 @@
   "dependencies": {
     "@dicebear/collection": "^9.2.2",
     "@dicebear/core": "^9.2.2",
-    "axios": "^1.8.1",
+    "axios": "^1.8.2",
     "boring-avatars": "^1.11.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.474.0",
