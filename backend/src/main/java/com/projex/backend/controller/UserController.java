@@ -53,17 +53,53 @@ public class UserController {
         }
 
         User user = userOpt.get();
+
+        // Ensure only the authenticated user can update their profile
         if (!user.getEmail().equals(authenticatedEmail)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Unauthorized to update this profile"));
         }
 
-        user.setBio(updatedUser.getBio());
-        user.setSkills(updatedUser.getSkills());
-        user.setLocation(updatedUser.getLocation());
+        // Update all fields only if they are provided (not null or empty)
+        if (updatedUser.getFullName() != null && !updatedUser.getFullName().isEmpty()) {
+            user.setFullName(updatedUser.getFullName());
+        }
+
+        if (updatedUser.getUsername() != null && !updatedUser.getUsername().isEmpty()) {
+            user.setUsername(updatedUser.getUsername());
+        }
+
+        if (updatedUser.getProfilePictureUrl() != null && !updatedUser.getProfilePictureUrl().isEmpty()) {
+            user.setProfilePictureUrl(updatedUser.getProfilePictureUrl());
+        }
+
+        if (updatedUser.getAuthProvider() != null && !updatedUser.getAuthProvider().isEmpty()) {
+            user.setAuthProvider(updatedUser.getAuthProvider());
+        }
+
+        if (updatedUser.getBio() != null) {
+            user.setBio(updatedUser.getBio());
+        }
+
+        if (updatedUser.getLocation() != null) {
+            user.setLocation(updatedUser.getLocation());
+        }
+
+        if (updatedUser.getSkills() != null) {
+            user.setSkills(updatedUser.getSkills());
+        }
+
+        if (updatedUser.getGithubUrl() != null) {
+            user.setGithubUrl(updatedUser.getGithubUrl());
+        }
+
+        if (updatedUser.getLinkedinUrl() != null) {
+            user.setLinkedinUrl(updatedUser.getLinkedinUrl());
+        }
 
         userService.saveUser(user);
         return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
     }
+
 
     @PutMapping("/{id}/update-password")
     public ResponseEntity<?> updatePassword(

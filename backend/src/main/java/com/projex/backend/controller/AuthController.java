@@ -36,10 +36,40 @@ public class AuthController {
     }
 
     /**
+     * Register a new user via Google OAuth.
+     */
+    @PostMapping("/register-google")
+    public ResponseEntity<?> registerGoogleUser(@RequestBody User user) {
+        try {
+            // Ensure this user is marked as a Google user
+            user.setAuthProvider("google");
+            user.setPassword(null); // Google users don't need a password
+
+            // Validate required fields
+            if (user.getEmail() == null || user.getUsername() == null || user.getFullName() == null || user.getProfilePictureUrl() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Missing required fields"));
+            }
+
+            Map<String, String> response = userAuthService.registerUser(user);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
+    /**
      * Authenticate user and return JWT.
      */
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestParam String email, @RequestParam String password) {
+    public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginRequest) {
+        String email = loginRequest.get("email");
+        String password = loginRequest.get("password");
+
+        if (email == null || password == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Email and password are required"));
+        }
+
         try {
             Map<String, String> response = userAuthService.authenticateUser(email, password);
             return ResponseEntity.ok(response);
@@ -47,6 +77,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
         }
     }
+
 
     /**
      * Get details of the logged-in user.

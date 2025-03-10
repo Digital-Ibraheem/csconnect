@@ -53,18 +53,19 @@ public class UserAuthService {
             throw new RuntimeException("This email is already in use. Please try a different one.");
         }
 
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("This username is already taken.");
+        // Only encode password for local users
+        if ("local".equals(user.getAuthProvider())) {
+            if (user.getPassword() == null || user.getPassword().isBlank()) {
+                throw new RuntimeException("Password is required for local users.");
+            }
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        } else {
+            user.setPassword(null); // Ensure OAuth users have no password
         }
 
-        // ✅ Hash the password before saving
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
-
-        // ✅ Generate JWT Token
         String token = jwtUtil.generateToken(savedUser);
 
-        // ✅ Return token + user info
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
         response.put("userId", savedUser.getId().toString());
@@ -72,4 +73,5 @@ public class UserAuthService {
 
         return response;
     }
+
 }
