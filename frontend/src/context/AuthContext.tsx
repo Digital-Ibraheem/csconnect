@@ -1,6 +1,8 @@
 "use client";
 
+import { useRouter } from "next/router";
 import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
 interface User {
   id: number;
@@ -13,7 +15,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (userData: User) => void;
+  login: (token: string) => void;
   logout: () => void;
   openLoginModal: (message?: string) => void;
 }
@@ -23,22 +25,44 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loginMessage, setLoginMessage] = useState<string | null>(null);
+  const router = useRouter()
 
-  // Persist session using local storage
+  const BACKEND_URL = "http://localhost:8080"
+
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetchCurrentUser(token);
+    }
   }, []);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData)); // Store in local storage
+  const fetchCurrentUser = async (token: string) => {
+    try {
+      console.log("Fetching user data...");
+      const response = await axios.get(BACKEND_URL + "/api/users/me", {
+        headers: {Authorization: `Bearer ${token}`}
+      })
+      console.log("User data recieved: ", response.data);
+      setUser(response.data)
+    } catch (error) {
+      console.error("Error fetching user data: ", error);
+      setUser(null);
+    }
+  }
+
+  const login = async (token: string) => {
+    localStorage.setItem("token", token);
+    await fetchCurrentUser(token);
+    router.push("/explore");
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
     setUser(null);
-    localStorage.removeItem("user");
+    router.push("/");
   };
+
+
 
   // Function to trigger login modal with an optional message
   const openLoginModal = (message?: string) => {
