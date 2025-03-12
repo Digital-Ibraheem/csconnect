@@ -54,7 +54,7 @@ export default function Navbar() {
                     {/* Logo */}
                     <Link href="/" onClick={() => setSidebarOpen(false)} className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-white rounded-full"></div> {/* Placeholder for logo */}
-                        <span className="text-white text-lg font-medium">Projex</span>
+                        <span className="text-white text-lg font-medium">CSConnect</span>
                     </Link>
 
                     {/* Navigation Links */}
@@ -72,10 +72,10 @@ export default function Navbar() {
                                     className="flex items-center gap-2 text-white hidden sm:flex"
                                 >
                                     <Image
-                                        src={user.avatar || "https://randomuser.me/api/portraits/men/1.jpg"}
+                                        src={user.profilePictureUrl || "https://randomuser.me/api/portraits/men/1.jpg"}
                                         width={32}
                                         height={32}
-                                        alt={user.name}
+                                        alt={user.username || "Profile picture"}
                                         className="rounded-full border border-gray-400"
                                     />
                                     <span className="hidden sm:inline text-sm">{user.username}</span>
@@ -129,7 +129,7 @@ export default function Navbar() {
                                     src={user.avatar || "https://randomuser.me/api/portraits/men/1.jpg"}
                                     width={32}
                                     height={32}
-                                    alt={user.name}
+                                    alt={user.fullName || "Profile picture"}
                                     className="rounded-full w-[50px] h-[50px] border border-gray-400"
                                 />
                                 <div className="flex flex-col justify-between h-full align-center">

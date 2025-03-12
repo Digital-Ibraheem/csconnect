@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useModal } from '@/context/ModalContext';
 import Image from 'next/image';
+import { useAuth } from '@/context/AuthContext';
 
 const existingUsernames = ['kareem', 'ibraheem'];
 
@@ -13,7 +14,14 @@ interface SignUpModalProps {
     onClose: () => void;
 }
 
+const avatarNames = [
+    "Jessica", "Jude", "Kimberly", "Sara", "Liliana", "Mackenzie", "Vivian",
+    "Christian", "Jade", "Aidan", "Eden", "Liam", "Avery", "Wyatt", "Sadie",
+    "Brian", "George", "Adrian", "Andrea", "Ryker"
+];
+
 const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
+    const { login } = useAuth();
     const { openModal } = useModal();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -22,6 +30,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
         confirmPassword: '',
         fullName: '',
         username: '',
+        profilePictureUrl: ''
     });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,7 +59,13 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
 
     const isValidPassword = (pwd: string) => pwd.length >= 8 && /\d/.test(pwd);
 
-    const handleCreateAccount = () => {
+    const generateRandomPfp = () => {
+        const randomName = avatarNames[Math.floor(Math.random() * avatarNames.length)];
+        return `https://api.dicebear.com/9.x/shapes/svg?seed=${randomName}`;
+    };
+
+
+    const handleCreateAccountSteps = () => {
         if (step === 2) {
             if (!isValidEmail(formData.email)) {
                 setError('Please enter a valid email address.');
@@ -74,10 +89,48 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                 setError("This username already exists.")
                 return;
             }
+
+            const profilePicture = generateRandomPfp();
+            
+            // Create the updated data object
+            const updatedData = { ...formData, profilePictureUrl: profilePicture };
+            
+            // Update the form data
+            setFormData(updatedData);
+            
+            // Call the account creation with the updated data directly
+            handleCreateLocalAccount(updatedData);
+            
             onClose();
             router.push('/explore');
         }
     };
+
+    const handleCreateLocalAccount = async (data = formData) => {
+        try {
+            const response = await fetch("http://localhost:8080/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                throw new Error(responseData.error || "Registration failed");
+            }
+
+            // Log the user in after successful registration
+            if (responseData.token) {
+                login(responseData.token);
+            }
+
+        } catch (err: any) {
+            setError(err.message || "Something went wrong")
+        }
+    }
 
     const handleGoogleSignUp = () => {
         console.log('Sign up with Google');
@@ -91,6 +144,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
             confirmPassword: '',
             fullName: '',
             username: '',
+            profilePictureUrl: ''
         });
         setStep(2);
     };
@@ -135,7 +189,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                 <div className="sm:w-1/2 w-full p-8 sm:p-12 relative flex flex-col h-full sm:h-auto justify-between">
                     <div>
                         {step >= 2 && <button
-                            onClick={() => setStep(s => s-1)}
+                            onClick={() => setStep(s => s - 1)}
                             className="absolute top-3 left-3 text-gray-500 hover:text-gray-700 flex items-center"
                         >
                             <div className="flex items-center">
@@ -290,7 +344,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
                         {step > 1 && (
-                            <Button inverted className="w-full mt-6" onClick={handleCreateAccount}>
+                            <Button inverted className="w-full mt-6" onClick={handleCreateAccountSteps}>
                                 {step === 2 ? 'Continue' : 'Create Account'}
                             </Button>
                         )}

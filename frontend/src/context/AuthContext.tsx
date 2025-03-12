@@ -20,10 +20,11 @@ declare global {
 interface User {
   id: number;
   avatar: string;
-  name: string;
+  fullName: string;
   email: string;
   username: string;
   authProvider: string;
+  profilePictureUrl: string;
 }
 
 interface AuthContextType {
