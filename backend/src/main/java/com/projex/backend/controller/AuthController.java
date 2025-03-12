@@ -103,7 +103,7 @@ public class AuthController {
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(),
-                    GsonFactory.getDefaultInstance() // ✅ Updated to use GsonFactory
+                    GsonFactory.getDefaultInstance() //  Updated to use GsonFactory
             ).setAudience(Collections.singletonList(GOOGLE_CLIENT_ID)).build();
 
             GoogleIdToken idToken = verifier.verify(idTokenString);
@@ -127,7 +127,7 @@ public class AuthController {
                     user.setProfilePictureUrl(profilePictureUrl);
                     user.setAuthProvider("google");
 
-                    // ✅ Generate a username from the email prefix if missing
+                    // Generate a username from the email prefix if missing
                     String generatedUsername = email.split("@")[0];
                     user.setUsername(generatedUsername);
 

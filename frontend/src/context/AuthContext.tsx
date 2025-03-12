@@ -4,12 +4,26 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 
+// Add this type declaration at the top of your file
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          disableAutoSelect: () => void;
+        }
+      }
+    }
+  }
+}
+
 interface User {
   id: number;
   avatar: string;
   name: string;
   email: string;
   username: string;
+  authProvider: string;
 }
 
 interface AuthContextType {
@@ -40,7 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log("Fetching user data...");
       const response = await axios.get(BACKEND_URL + "/api/users/me", {
-        headers: {Authorization: `Bearer ${token}`}
+        headers: { Authorization: `Bearer ${token}` }
       })
       console.log("User data recieved: ", response.data);
       setUser(response.data)
@@ -56,13 +70,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/explore");
   };
 
-  const logout = () => {
+  const handleLocalLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
     router.push("/");
   };
 
+  const handleGoogleLogout = async () => {
+    try {
+      // First check if the Google API is loaded
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        // Sign out from Google
+        window.google.accounts.id.disableAutoSelect();
+      }
+      
+      // Then perform the same actions as local logout
+      localStorage.removeItem("token");
+      setUser(null);
+      router.push("/");
+    } catch (error) {
+      console.error("Error during Google logout:", error);
+      // Fallback to local logout if Google logout fails
+      handleLocalLogout();
+    }
+  };
 
+  const logout = () => {
+    if (user?.authProvider === "google") {
+      handleGoogleLogout();
+    } else {
+      handleLocalLogout();
+    }
+  };
 
   // Function to trigger login modal with an optional message
   const openLoginModal = (message?: string) => {
