@@ -19,8 +19,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${roboto.variable}`}>
-      <AuthProvider>
         <ModalProvider>
+        <AuthProvider>
+
           <body className="antialiased">
             <Script 
               src="https://accounts.google.com/gsi/client" 
@@ -32,8 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
             <FooterVisibilityWrapper />
           </body>
+          </AuthProvider>
         </ModalProvider>
-      </AuthProvider>
     </html>
   );
 }

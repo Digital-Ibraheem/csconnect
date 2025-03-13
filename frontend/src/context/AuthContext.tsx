@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useModal } from "@/context/ModalContext";
 
 // Add this type declaration at the top of your file
 declare global {
@@ -30,9 +31,10 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (token: string) => void;
+  login: (token: string) => Promise<void>;
   logout: () => void;
   openLoginModal: (message?: string) => void;
+  loginMessage: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loginMessage, setLoginMessage] = useState<string | null>(null);
   const router = useRouter()
+  const { openModal } = useModal();
 
   const BACKEND_URL = "http://localhost:8080"
 
@@ -107,11 +110,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Function to trigger login modal with an optional message
   const openLoginModal = (message?: string) => {
     setLoginMessage(message || "Please log in to continue.");
-    // You would typically trigger a modal state update here
+    openModal('login');
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, logout, openLoginModal }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoggedIn: !!user, 
+      login, 
+      logout, 
+      openLoginModal,
+      loginMessage 
+    }}>
       {children}
     </AuthContext.Provider>
   );

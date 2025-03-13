@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { projectData } from "@/data/projects";
 import { CardsSkeleton } from '@/components/ui/skeletons';
 import { useAuth } from '@/context/AuthContext';
+import Button from "@/components/ui/Button";
 
 const DESCRIPTION_LIMIT = 150;
 
@@ -89,13 +90,29 @@ const ExplorePage = () => {
                     </div>
                 </div>
             )}
+            <div className="w-full max-w-6xl flex justify-between">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-semibold text-[#1a1a1a] w-full mb-4">
+                        Explore Featured Ideas
+                    </h1>
+                    <p className="text-gray-600 px-0 font-inter w-full">
+                        Connect, collaborate, and build your portfolio alongside like-minded individuals through real-world projects.
+                    </p>
+                </div>
+                <div className="">
+                    {/* button for new post */}
+                    <button
+                        onClick={!user ? () => setError("You need to log in to create a new project.") : undefined}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                        New Project
+                    </button>
+                </div>
+            </div>
 
-            <h1 className="text-3xl md:text-4xl font-semibold text-[#1a1a1a] max-w-6xl w-full mb-4">
-                Explore Featured Ideas
-            </h1>
-            <p className="text-gray-600 px-0 font-inter w-full max-w-6xl">
-                Connect, collaborate, and build your portfolio alongside like-minded individuals through real-world projects.
-            </p>
 
             {loading ? (
                 <CardsSkeleton />

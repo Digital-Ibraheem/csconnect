@@ -6,6 +6,9 @@ import Step2 from '@/components/create/steps/Step2';
 import Step3 from '@/components/create/steps/Step3';
 import Step4 from '@/components/create/steps/Step4';
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useModal } from '@/context/ModalContext';
+import { useRouter } from 'next/navigation';
 
 const steps = [
   { 
@@ -40,6 +43,17 @@ const CreatePage = () => {
     images: [],
   });
   const [canProceed, setCanProceed] = useState(false);
+  const { user, isLoggedIn, openLoginModal } = useAuth();
+  const router = useRouter();
+
+  // Check if user is logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      // Redirect to explore page and open login modal with error message
+      router.push('/explore');
+      openLoginModal("You need to log in to create a project.");
+    }
+  }, [isLoggedIn, router, openLoginModal]);
 
   // Function to update form data
   const updateFormData = (field: string, value: any) => {
@@ -82,11 +96,16 @@ const CreatePage = () => {
   };
 
   const stepComponents = [
-    <Step1 formData={formData} updateFormData={updateFormData} />,
-    <Step2 formData={formData} updateFormData={updateFormData} />,
-    <Step3 formData={formData} updateFormData={updateFormData} />,
-    <Step4 formData={formData} />,
+    <Step1 key="step1" formData={formData} updateFormData={updateFormData} />,
+    <Step2 key="step2" formData={formData} updateFormData={updateFormData} />,
+    <Step3 key="step3" formData={formData} updateFormData={updateFormData} />,
+    <Step4 key="step4" formData={formData} />,
   ];
+
+  // Only render the content if the user is logged in
+  if (!isLoggedIn) {
+    return null;
+  }
 
   return (
     <div className="bg-gray-100 flex flex-col items-center px-4 py-6 sm:px-8 sm:py-10">

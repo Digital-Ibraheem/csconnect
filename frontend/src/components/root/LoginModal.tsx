@@ -1,26 +1,52 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { useModal } from '@/context/ModalContext';
 import Image from 'next/image';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface LoginModalProps {
     onClose: () => void;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
-    const { login } = useAuth();
-    const { closeModal, openModal } = useModal(); // Use the modal context
+    const { login, loginMessage } = useAuth();
+    const { closeModal, openModal } = useModal();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
     });
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [authError, setAuthError] = useState<string | null>(null);
     const [showEmailForm, setShowEmailForm] = useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Check if we're on the create page
+    const isCreatePage = pathname.includes('/create');
+
+    // Handle login message as an error to display
+    useEffect(() => {
+        if (loginMessage) {
+            setAuthError(loginMessage);
+            const timer = setTimeout(() => {
+                setAuthError(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [loginMessage]);
+
+    const handleClose = () => {
+        // If on create page and closing the modal, redirect to explore
+        if (isCreatePage) {
+            router.push('/explore');
+        }
+        onClose();
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,9 +89,45 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
 
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50 sm:p-4"
-            onClick={onClose}
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50 sm:p-4 flex-col"
+            onClick={handleClose}
         >
+            {authError && (
+                <div className="fixed top-[110px] w-full z-50 flex justify-center px-4">
+                    <div className="
+            bg-red-100 
+            border-l-4 border-red-500 
+            p-4 
+            rounded-r-lg 
+            shadow-lg 
+            shadow-lg
+            flex 
+            items-center 
+            space-x-4
+            animate-slide-in-down
+        ">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-red-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                        </svg>
+                        <div>
+                            <p className="text-red-800 font-medium text-sm">
+                                {authError}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div
                 className="bg-white rounded-lg shadow-lg w-full max-w-3xl flex relative overflow-hidden sm:flex-row flex-col sm:h-auto h-full min-h-[550px]"
                 onClick={(e) => e.stopPropagation()}
@@ -113,7 +175,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                         </button>}
                         {/* Close Button */}
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
                         >
                             <X className="w-5 h-5" />
