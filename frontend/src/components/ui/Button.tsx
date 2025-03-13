@@ -21,7 +21,7 @@ const Button: React.FC<ButtonProps> = ({ children, className, onClick, light, su
         "relative flex items-center justify-center px-5 py-2.5 border rounded-lg font-inter font-medium text-[16px] leading-[20px] transition",
         {
           // Default Dark Theme (for dark backgrounds)
-          "border-[#003F8C] bg-[#003F8C]/50 text-white shadow-[inset_0px_0px_12px_rgba(255,255,255,0.24)] hover:bg-blue-600 hover:border-blue-600 hover:text-white":
+          "border-gray-600 bg-gray-700/30 text-white shadow-[inset_0px_0px_12px_rgba(255,255,255,0.24)] hover:bg-white hover:border-white hover:text-black":
             !light && !inverted,
 
           // Light Theme (for light backgrounds)
