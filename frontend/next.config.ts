@@ -11,8 +11,13 @@ const nextConfig: NextConfig = {
         hostname: "api.dicebear.com",
         pathname: "/9.x/shapes/svg",
       },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
     ],
-    domains: ["randomuser.me"],
+    domains: ["randomuser.me", "lh3.googleusercontent.com"],
     dangerouslyAllowSVG: true, // Allow SVG images
   },
 };

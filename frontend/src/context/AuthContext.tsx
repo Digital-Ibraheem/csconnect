@@ -5,13 +5,15 @@ import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useModal } from "@/context/ModalContext";
 
-// Add this type declaration at the top of your file
+// Update the type declaration at the top of your file
 declare global {
   interface Window {
     google?: {
       accounts?: {
         id?: {
           disableAutoSelect: () => void;
+          initialize: (config: any) => void;
+          prompt: () => void;
         }
       }
     }
