@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +25,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     const [showEmailForm, setShowEmailForm] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
+    const googleButtonRef = useRef<HTMLDivElement>(null);
+
 
     // Check if we're on the create page
     const isCreatePage = pathname.includes('/create');
@@ -39,6 +41,93 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             return () => clearTimeout(timer);
         }
     }, [loginMessage]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadGoogleScript = () => {
+            const existingScript = document.getElementById('google-script');
+            if (existingScript) {
+                existingScript.remove();
+            }
+
+            const script = document.createElement("script");
+            script.id = 'google-script';
+            script.src = "https://accounts.google.com/gsi/client";
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                if (isMounted && window.google?.accounts?.id) {
+                    initializeAndRenderGoogleButton();
+                }
+            };
+            document.body.appendChild(script);
+        };
+
+        if (!window.google?.accounts?.id) {
+            loadGoogleScript();
+        } else if (isMounted) {
+            initializeAndRenderGoogleButton();
+        }
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const initializeAndRenderGoogleButton = () => {
+        if (!window.google?.accounts?.id || !googleButtonRef.current) {
+            console.error("Google API not loaded or button element not found");
+            return;
+        }
+
+        const googleId = window.google.accounts.id as any;
+
+        googleId.initialize({
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+            callback: handleGoogleResponse,
+            auto_select: false,
+        });
+
+        googleId.renderButton(
+            googleButtonRef.current,
+            {
+                type: 'standard',
+                theme: 'outline',
+                size: 'large',
+                text: 'signin_with',
+                width: '100%'
+            }
+        );
+    };
+
+    const handleGoogleResponse = async (response: any) => {
+        try {
+            const idToken = response.credential;
+            console.log("Google ID Token:", idToken);
+
+            const res = await fetch("http://localhost:8080/auth/google-login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ idToken }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Google sign-in failed");
+
+            if (data.token) {
+                login(data.token);
+                closeModal();
+            }
+        } catch (error: any) {
+            setError(error.message || "Google authentication failed");
+        }
+    };
+
+
+
 
     const handleClose = () => {
         // If on create page and closing the modal, redirect to explore
@@ -190,20 +279,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
 
                         {!showEmailForm ? (
                             <div className="mt-8 flex flex-col gap-4">
-                                <button
-                                    onClick={handleGoogleLogin}
-                                    className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-md p-3 hover:bg-gray-50 transition"
-                                >
-                                    <div className="w-5 h-5 relative">
-                                        <Image
-                                            src="/images/google-logo.svg"
-                                            alt="Google"
-                                            width={20}
-                                            height={20}
-                                        />
-                                    </div>
-                                    <span className="text-gray-700">Sign in with Google</span>
-                                </button>
+                                <div ref={googleButtonRef} id="googleLoginButton"></div>
+
+
 
                                 <div className="flex items-center my-2">
                                     <div className="flex-grow h-px bg-gray-300"></div>
