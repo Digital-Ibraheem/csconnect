@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -189,4 +190,17 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
     }
+
+    @GetMapping("/check-username")
+    public ResponseEntity<?> checkUsernameAvailability(@RequestParam String username) {
+        boolean usernameExists = userService.existsByUsername(username);
+        return ResponseEntity.ok(Map.of("usernameTaken", usernameExists));
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmailAvailability(@RequestParam String email) {
+        boolean emailExists = userService.existsByEmail(email);
+        return ResponseEntity.ok(Map.of("emailTaken", emailExists));
+    }
+
 }

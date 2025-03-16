@@ -8,8 +8,6 @@ import { useModal } from '@/context/ModalContext';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 
-const existingUsernames = ['kareem', 'ibraheem'];
-
 interface SignUpModalProps {
     onClose: () => void;
 }
@@ -71,6 +69,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
             isMounted = false;
         };
     }, []);
+    
 
     const initializeAndRenderGoogleButton = () => {
         if (!window.google?.accounts?.id || !googleButtonRef.current) {
@@ -85,18 +84,27 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
             callback: handleGoogleResponse,
             auto_select: false,
         });
-
-        googleId.renderButton(
-            googleButtonRef.current,
-            {
-                type: 'standard',
-                theme: 'outline',
-                size: 'large',
-                text: 'signup_with',
-                width: '100%'
-            }
-        );
     };
+
+    useEffect(() => {
+        // If the Google client is ready and we have a valid ref,
+        // re-render the button every time step=1.
+        if (
+          step === 1 &&
+          window.google?.accounts?.id &&
+          googleButtonRef.current
+        ) {
+          // Use type assertion to avoid TypeScript error
+          const googleId = window.google.accounts.id as any;
+          googleId.renderButton(googleButtonRef.current, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'signup_with',
+            width: '100%',
+          });
+        }
+      }, [step]);
 
     const handleGoogleResponse = async (response: any) => {
         try {
@@ -146,7 +154,7 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
         return `https://api.dicebear.com/9.x/shapes/svg?seed=${randomName}`;
     };
 
-    const handleCreateAccountSteps = () => {
+    const handleCreateAccountSteps = async () => {
         if (step === 2) {
             if (!isValidEmail(formData.email)) {
                 setError('Please enter a valid email address.');
@@ -166,19 +174,38 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
             if (!formData.fullName.trim()) {
                 setError('Please enter your full name.');
                 return;
-            } else if (existingUsernames.includes(formData.username)) {
-                setError("This username already exists.");
-                return;
             }
-
-            const profilePicture = generateRandomPfp();
-            const updatedData = { ...formData, profilePictureUrl: profilePicture };
-            setFormData(updatedData);
-            handleCreateLocalAccount(updatedData);
-            onClose();
-            router.push('/explore');
+    
+            try {
+                // Check if username exists in the database
+                const response = await fetch(`http://localhost:8080/api/users/check-username?username=${formData.username}`);
+                const data = await response.json();
+    
+                if (!response.ok) {
+                    throw new Error(data.error || "Something went wrong");
+                }
+    
+                if (data.exists) {
+                    setError("This username already exists.");
+                    return;
+                }
+    
+                // Generate profile picture and update form data
+                const profilePicture = generateRandomPfp();
+                const updatedData = { ...formData, profilePictureUrl: profilePicture };
+                setFormData(updatedData);
+                
+                // Proceed with account creation
+                handleCreateLocalAccount(updatedData);
+                onClose();
+                router.push('/explore');
+                
+            } catch (error: any) {
+                setError(error.message || "Something went wrong while checking username availability.");
+            }
         }
     };
+    
 
     const handleCreateLocalAccount = async (data = formData) => {
         try {

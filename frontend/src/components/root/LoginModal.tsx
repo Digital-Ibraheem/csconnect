@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
+import { X, Eye, EyeOff, CheckCircle, ArrowLeft, Mail } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { useModal } from '@/context/ModalContext';
@@ -43,6 +43,26 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     }, [loginMessage]);
 
     useEffect(() => {
+        // If the Google client is ready and we have a valid ref,
+        // re-render the button every time step=1.
+        if (
+          !showEmailForm &&
+          window.google?.accounts?.id &&
+          googleButtonRef.current
+        ) {
+          const googleId = window.google.accounts.id as any;
+          googleId.renderButton(googleButtonRef.current, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'signup_with',
+            width: '100%',
+          });
+        }
+      }, [showEmailForm]);
+      
+
+    useEffect(() => {
         let isMounted = true;
 
         const loadGoogleScript = () => {
@@ -75,6 +95,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         };
     }, []);
 
+
+
     const initializeAndRenderGoogleButton = () => {
         if (!window.google?.accounts?.id || !googleButtonRef.current) {
             console.error("Google API not loaded or button element not found");
@@ -104,7 +126,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     const handleGoogleResponse = async (response: any) => {
         try {
             const idToken = response.credential;
-            console.log("Google ID Token:", idToken);
 
             const res = await fetch("http://localhost:8080/auth/google-login", {
                 method: "POST",
@@ -161,15 +182,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         } catch (err: any) {
             setError(err.message || "Something went wrong");
         }
-    };
-
-    const handleGoogleLogin = () => {
-        // // This would typically integrate with Google OAuth
-        // console.log('Login with Google');
-        // // For now, we'll just simulate a login
-        // const mockUser = { id: 2, name: "Google User", email: "google@example.com", avatar: "https://randomuser.me/api/portraits/men/2.jpg", username: "googleuser" };
-        // login(mockUser);
-        // closeModal();
     };
 
     const handleEmailLogin = () => {
@@ -291,9 +303,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
 
                                 <button
                                     onClick={handleEmailLogin}
-                                    className="w-full border border-gray-300 rounded-md p-3 hover:bg-gray-50 transition text-gray-700"
+                                    className="flex items-center justify-center w-full border border-gray-300 rounded-md p-3 hover:bg-gray-50 transition text-gray-700 text-sm gap-3"
                                 >
-                                    Sign in with Email/Username
+                                    <Mail className="w-5 h-5 text-gray-700" />
+                                    <span className='w-full'>Sign in with Email</span>
                                 </button>
                             </div>
                         ) : (

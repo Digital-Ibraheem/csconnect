@@ -35,6 +35,14 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
     /**
      * Save user profile updates.
      */
