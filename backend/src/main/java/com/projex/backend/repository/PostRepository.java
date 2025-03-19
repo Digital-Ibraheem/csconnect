@@ -18,7 +18,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // Search posts by title or description
     @Query("SELECT p FROM Post p WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))" + "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    List<Post> findByTitleOrDescription(@Param("keyword") String keyword);
+    List<Post> searchByTitleOrDescription(@Param("keyword") String keyword);
 
     // Filter posts by project status
     List<Post> findByProjectStatus(String projectStatus);
