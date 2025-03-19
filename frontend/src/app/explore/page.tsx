@@ -7,6 +7,7 @@ import { projectData } from "@/data/projects";
 import { CardsSkeleton } from '@/components/ui/skeletons';
 import { useAuth } from '@/context/AuthContext';
 import Button from "@/components/ui/Button";
+import SearchBar from "@/components/explore/SearchBar";
 
 const DESCRIPTION_LIMIT = 150;
 
@@ -15,10 +16,12 @@ const ExplorePage = () => {
     const [projects, setProjects] = useState<typeof projectData>([]);
     const { user } = useAuth();
     const [error, setError] = useState<string | null>(null);
+    const [filteredProjects, setFilteredProjects] = useState<typeof projectData>([]);
 
     useEffect(() => {
         setTimeout(() => {
             setProjects(projectData);
+            setFilteredProjects(projectData);
             setLoading(false);
         }, 2000);
     }, []);
@@ -32,6 +35,22 @@ const ExplorePage = () => {
 
     const handleViewDetailsClick = () => {
         setError("You need to log in to view project details.");
+    };
+
+    const handleSearch = (searchTerm: any) => {
+        if (!searchTerm.trim()) {
+            setFilteredProjects(projects);
+            return;
+        }
+        
+        const term = searchTerm.toLowerCase();
+        const results = projects.filter(project => 
+            project.title.toLowerCase().includes(term) ||
+            project.technologies.some(tech => tech.toLowerCase().includes(term)) ||
+            project.roles.some(role => role.toLowerCase().includes(term))
+        );
+        
+        setFilteredProjects(results);
     };
 
     return (
@@ -90,7 +109,9 @@ const ExplorePage = () => {
                     </div>
                 </div>
             )}
+
             <div className="w-full max-w-6xl flex justify-between">
+                
                 <div>
                     <h1 className="text-3xl md:text-4xl font-semibold text-[#1a1a1a] w-full mb-4">
                         Explore Featured Ideas
@@ -99,6 +120,7 @@ const ExplorePage = () => {
                         Connect, collaborate, and build your portfolio alongside like-minded individuals through real-world projects.
                     </p>
                 </div>
+
                 <div className="">
                     {/* button for new post */}
                     {user ? (
@@ -126,13 +148,14 @@ const ExplorePage = () => {
                     )}
                 </div>
             </div>
+            <SearchBar onSearch={handleSearch} />
 
 
             {loading ? (
                 <CardsSkeleton />
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full mt-6">
-                    {projects.map((project) => (
+                    {filteredProjects.map((project) => (
                         <div
                             key={project.id}
                             className="border rounded-lg shadow-md bg-white p-6 hover:shadow-lg transition flex flex-col justify-between h-full"

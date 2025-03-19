@@ -46,5 +46,5 @@ public class Post {
     private User owner; // The user who created the post
 
     @Column(nullable = false)
-    private boolean isPublished = false; 
+    private boolean isPublished = false;
 }
