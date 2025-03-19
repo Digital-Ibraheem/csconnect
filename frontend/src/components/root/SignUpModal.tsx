@@ -168,8 +168,27 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onClose }) => {
                 setError('Passwords do not match.');
                 return;
             }
-            setError(null);
-            setStep(3);
+            
+            try {
+                // Check if email exists in the database
+                const emailResponse = await fetch(`http://localhost:8080/api/users/check-email?email=${formData.email}`);
+                console.log("FETCHING FROM EMAIL"  + formData.email)
+                const emailData = await emailResponse.json();
+                
+                if (!emailResponse.ok) {
+                    throw new Error(emailData.error || "Something went wrong");
+                }
+                
+                if (emailData.exists) {
+                    setError("This email is already registered.");
+                    return;
+                }
+                
+                setError(null);
+                setStep(3);
+            } catch (error: any) {
+                setError(error.message || "Something went wrong while checking email availability.");
+            }
         } else if (step === 3) {
             if (!formData.fullName.trim()) {
                 setError('Please enter your full name.');

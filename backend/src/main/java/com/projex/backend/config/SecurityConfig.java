@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/public/**").permitAll()  //  Allow auth & public routes
+                        .requestMatchers("/api/users/check-username").permitAll()
+                        .requestMatchers("/api/users/check-email").permitAll()
                         .anyRequest().authenticated()  //  Secure all other routes
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)) //  Handle unauthorized access

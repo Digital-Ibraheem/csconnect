@@ -13,7 +13,7 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
-    const { login, loginMessage } = useAuth();
+    const { login, loginMessage, setLoginMessage } = useAuth();
     const { closeModal, openModal } = useModal();
     const [formData, setFormData] = useState({
         email: '',
@@ -37,6 +37,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             setAuthError(loginMessage);
             const timer = setTimeout(() => {
                 setAuthError(null);
+                setLoginMessage(null)
             }, 5000);
             return () => clearTimeout(timer);
         }
@@ -314,7 +315,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                                 {/* Email Input */}
                                 <div className="mt-4">
                                     <label htmlFor="email" className="text-gray-700 text-sm font-medium">
-                                        Email or Username
+                                        Email
                                     </label>
                                     <input
                                         type="email"

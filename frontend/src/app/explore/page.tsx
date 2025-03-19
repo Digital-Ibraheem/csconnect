@@ -143,9 +143,13 @@ const ExplorePage = () => {
                                 <h2 className="text-lg font-semibold text-gray-900">{project.title}</h2>
 
                                 {/* Project Status */}
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-sm mt-1">
                                     <span className="font-semibold">Status:</span>
-                                    {project.projectStatus === "work-in-progress" ? " Work in Progress" : " New Project"}
+                                    {project.projectStatus === "work-in-progress" ? (
+                                        <span className="text-yellow-600"> Work in Progress</span>
+                                    ) : (
+                                        <span className="text-green-600"> New Project</span>
+                                    )}
                                 </p>
 
                                 {/* Description */}

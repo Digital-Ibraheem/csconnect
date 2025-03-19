@@ -192,15 +192,15 @@ public class UserController {
     }
 
     @GetMapping("/check-username")
-    public ResponseEntity<?> checkUsernameAvailability(@RequestParam String username) {
+    public ResponseEntity<Map<String, Boolean>> checkUsernameAvailability(@RequestParam String username) {
         boolean usernameExists = userService.existsByUsername(username);
-        return ResponseEntity.ok(Map.of("usernameTaken", usernameExists));
+        return ResponseEntity.ok(Map.of("exists", usernameExists));
     }
 
     @GetMapping("/check-email")
-    public ResponseEntity<?> checkEmailAvailability(@RequestParam String email) {
+    public ResponseEntity<Map<String, Boolean>> checkEmailAvailability(@RequestParam String email) {
         boolean emailExists = userService.existsByEmail(email);
-        return ResponseEntity.ok(Map.of("emailTaken", emailExists));
+        return ResponseEntity.ok(Map.of("exists", emailExists));
     }
 
 }

@@ -37,6 +37,7 @@ interface AuthContextType {
   logout: () => void;
   openLoginModal: (message?: string) => void;
   loginMessage: string | null;
+  setLoginMessage: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -122,7 +123,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       login, 
       logout, 
       openLoginModal,
-      loginMessage 
+      loginMessage,
+      setLoginMessage
     }}>
       {children}
     </AuthContext.Provider>

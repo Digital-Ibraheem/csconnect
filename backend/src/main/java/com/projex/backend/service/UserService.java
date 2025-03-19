@@ -35,13 +35,28 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+//    public boolean existsByEmail(String email) {
+//        return userRepository.existsByEmail(email);
+//    }
+//
+//    public boolean existsByUsername(String username) {
+//        return userRepository.existsByUsername(username);
+//    }
+
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        System.out.println("Checking if email exists: " + email);
+        boolean result = userRepository.existsByEmail(email);
+        System.out.println("Email exists? " + result);
+        return result;
     }
 
     public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
+        System.out.println("Checking if username exists: " + username);
+        boolean result = userRepository.existsByUsername(username);
+        System.out.println("Username exists? " + result);
+        return result;
     }
+
 
     /**
      * Save user profile updates.
