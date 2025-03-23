@@ -1,29 +1,106 @@
 'use client';
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { projectData } from "@/data/projects";
+import { useEffect, useState, useCallback } from "react";
 import { CardsSkeleton } from '@/components/ui/skeletons';
 import { useAuth } from '@/context/AuthContext';
-import Button from "@/components/ui/Button";
 import SearchBar from "@/components/explore/SearchBar";
+import Post from "@/components/explore/Post";
+import debounce from 'lodash/debounce';
 
-const DESCRIPTION_LIMIT = 150;
+const API_URL = "http://localhost:8080/api/posts";
+
+interface PostType {
+  id: number;
+  title: string;
+  projectStatus: string;
+  description: string;
+  technologies: string[];
+  roles: string[];
+  isPublished: boolean;
+  owner: {
+    id: number;
+    username: string;
+    fullName: string;
+    profilePictureUrl: string;
+    location?: string;
+  };
+}
 
 const ExplorePage = () => {
     const [loading, setLoading] = useState(true);
-    const [projects, setProjects] = useState<typeof projectData>([]);
+    const [projects, setProjects] = useState<PostType[]>([]);
     const { user } = useAuth();
     const [error, setError] = useState<string | null>(null);
-    const [filteredProjects, setFilteredProjects] = useState<typeof projectData>([]);
+    const [filteredProjects, setFilteredProjects] = useState<PostType[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        debounce(async (term: string) => {
+            if (!term.trim()) {
+                setFilteredProjects(projects);
+                return;
+            }
+            
+            try {
+                setLoading(true);
+                const response = await fetch(`${API_URL}/search?keyword=${encodeURIComponent(term)}`);
+                
+                if (!response.ok) {
+                    throw new Error("Search failed");
+                }
+                
+                const data = await response.json();
+                setFilteredProjects(data);
+            } catch (err) {
+                console.error("Error searching:", err);
+                setError("Search failed. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        }, 500), // 500ms delay
+        [projects]
+    );
+
+    // Effect to trigger search when searchTerm changes
+    useEffect(() => {
+        debouncedSearch(searchTerm);
+        
+        // Cleanup on unmount
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [searchTerm, debouncedSearch]);
+
+    // Search input handler
+    const handleSearch = (term: string) => {
+        setSearchTerm(term);
+    };
+
+    // Fetch posts from backend
+    const fetchPosts = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(API_URL);
+            
+            if (!response.ok) {
+                throw new Error("Failed to fetch projects");
+            }
+            
+            const data = await response.json();
+            setProjects(data);
+            setFilteredProjects(data);
+        } catch (err: any) {
+            console.error("Error fetching posts:", err);
+            setError("Failed to load projects. Please try again later.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        setTimeout(() => {
-            setProjects(projectData);
-            setFilteredProjects(projectData);
-            setLoading(false);
-        }, 2000);
+        fetchPosts();
     }, []);
 
     // Remove error when user logs in
@@ -33,43 +110,22 @@ const ExplorePage = () => {
         }
     }, [user]);
 
-    const handleViewDetailsClick = () => {
-        setError("You need to log in to view project details.");
-    };
-
-    const handleSearch = (searchTerm: any) => {
-        if (!searchTerm.trim()) {
-            setFilteredProjects(projects);
-            return;
-        }
-        
-        const term = searchTerm.toLowerCase();
-        const results = projects.filter(project => 
-            project.title.toLowerCase().includes(term) ||
-            project.technologies.some(tech => tech.toLowerCase().includes(term)) ||
-            project.roles.some(role => role.toLowerCase().includes(term))
-        );
-        
-        setFilteredProjects(results);
-    };
-
     return (
         <section className="min-h-screen flex flex-col py-10 px-5 items-center">
             {/* Error Message */}
             {error && (
                 <div className="fixed top-[110px] w-full z-50 flex justify-center px-4">
                     <div className="
-            bg-red-100 
-            border-l-4 border-red-500 
-            p-4 
-            rounded-r-lg 
-            shadow-lg 
-            shadow-lg
-            flex 
-            items-center 
-            space-x-4
-            animate-slide-in-down
-        ">
+                        bg-red-100 
+                        border-l-4 border-red-500 
+                        p-4 
+                        rounded-r-lg 
+                        shadow-lg 
+                        flex 
+                        items-center 
+                        space-x-4
+                        animate-slide-in-down
+                    ">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-6 w-6 text-red-500"
@@ -111,7 +167,6 @@ const ExplorePage = () => {
             )}
 
             <div className="w-full max-w-6xl flex justify-between">
-                
                 <div>
                     <h1 className="text-3xl md:text-4xl font-semibold text-[#1a1a1a] w-full mb-4">
                         Explore Featured Ideas
@@ -122,7 +177,6 @@ const ExplorePage = () => {
                 </div>
 
                 <div className="">
-                    {/* button for new post */}
                     {user ? (
                         <Link href='/create'>
                             <button
@@ -150,113 +204,49 @@ const ExplorePage = () => {
             </div>
             <SearchBar onSearch={handleSearch} />
 
-
             {loading ? (
                 <CardsSkeleton />
+            ) : filteredProjects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center w-full mt-16">
+                    <p className="text-lg text-gray-500">No projects found</p>
+                    <p className="text-sm text-gray-400 mt-2">Try a different search term or check back later</p>
+                </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full mt-6">
-                    {filteredProjects.map((project) => (
-                        <div
-                            key={project.id}
-                            className="border rounded-lg shadow-md bg-white p-6 hover:shadow-lg transition flex flex-col justify-between h-full"
-                        >
-                            {/* Upper Content */}
-                            <div className="flex flex-col flex-grow">
-                                {/* Title */}
-                                <h2 className="text-lg font-semibold text-gray-900">{project.title}</h2>
-
-                                {/* Project Status */}
-                                <p className="text-sm mt-1">
-                                    <span className="font-semibold">Status:</span>
-                                    {project.projectStatus === "work-in-progress" ? (
-                                        <span className="text-yellow-600"> Work in Progress</span>
-                                    ) : (
-                                        <span className="text-green-600"> New Project</span>
-                                    )}
-                                </p>
-
-                                {/* Description */}
-                                <p className="text-sm text-gray-700 mt-2">
-                                    {project.description.length > DESCRIPTION_LIMIT
-                                        ? `${project.description.substring(0, DESCRIPTION_LIMIT)}...`
-                                        : project.description}
-                                </p>
-
-                                {/* Technologies & Roles */}
-                                <div className="mt-3 flex flex-col gap-2">
-                                    {/* Technologies */}
-                                    <div>
-                                        <h3 className="text-gray-800 font-semibold text-sm">Technologies {project.projectStatus == 'new-project' ? "To Be Used" : "Used"}</h3>
-                                        {project.technologies.length > 0 ? (
-                                            <div className="flex flex-wrap gap-2 mt-1">
-                                                {project.technologies.map((tech, index) => (
-                                                    <span key={index} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                                                        {tech}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-gray-500 italic text-sm">No technologies selected.</p>
-                                        )}
-                                    </div>
-
-                                    {/* Roles */}
-                                    <div>
-                                        <h3 className="text-gray-800 font-semibold text-sm">Roles Needed</h3>
-                                        {project.roles.length > 0 ? (
-                                            <div className="flex flex-wrap gap-2 mt-1">
-                                                {project.roles.map((role, index) => (
-                                                    <span key={index} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
-                                                        {role}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-gray-500 italic text-sm">No roles selected.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Bottom Content (keeps everything spaced evenly) */}
-                            <div className="mt-auto">
-                                {/* View More - Requires Login */}
-                                {user ? (
-                                    <Link
-                                        href={`/project/${project.id}`}
-                                        className="text-blue-600 text-sm font-medium mt-4 block hover:underline"
-                                    >
-                                        View details
-                                    </Link>
-                                ) : (
-                                    <button
-                                        onClick={handleViewDetailsClick}
-                                        className="text-blue-600 text-sm font-medium mt-4 hover:underline"
-                                    >
-                                        View details
-                                    </button>
-                                )}
-
-                                {/* User Info */}
-                                <div className="flex items-center mt-4 pt-3 border-t border-gray-300">
-                                    <Image
-                                        src={project.user.avatar}
-                                        width={40}
-                                        height={40}
-                                        alt={project.user.name}
-                                        className="w-10 h-10 rounded-full border"
-                                    />
-                                    <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-800">{project.user.name}</p>
-                                        {project.user.country && (
-                                            <p className="text-xs text-gray-500">{project.user.country}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    ))}
+                    {filteredProjects.map((project) => {
+                        // Add safety checks for missing data
+                        const owner = project.owner || {};
+                        
+                        return (
+                            <Post 
+                                key={project.id}
+                                post={{
+                                    id: project.id,
+                                    title: project.title,
+                                    projectStatus: project.projectStatus,
+                                    description: project.description,
+                                    technologies: project.technologies || [],
+                                    roles: project.roles || [],
+                                    user: {
+                                        name: owner.fullName || "Unknown User",
+                                        avatar: owner.profilePictureUrl || "",
+                                        country: owner.location
+                                    }
+                                }}
+                                user={user ? {
+                                    id: user.id,
+                                    name: user.fullName || "User",
+                                    avatar: user.profilePictureUrl || "",
+                                    country: user.location
+                                } : { 
+                                    id: 0, 
+                                    name: "Guest", 
+                                    avatar: "", 
+                                    country: undefined 
+                                }} 
+                            />
+                        );
+                    })}
                 </div>
             )}
         </section>

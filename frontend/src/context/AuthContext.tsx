@@ -28,6 +28,7 @@ interface User {
   username: string;
   authProvider: string;
   profilePictureUrl: string;
+  location: string;
 }
 
 interface AuthContextType {
@@ -38,6 +39,7 @@ interface AuthContextType {
   openLoginModal: (message?: string) => void;
   loginMessage: string | null;
   setLoginMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  token: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -124,7 +126,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       logout, 
       openLoginModal,
       loginMessage,
-      setLoginMessage
+      setLoginMessage,
+      token: localStorage.getItem("token")
     }}>
       {children}
     </AuthContext.Provider>

@@ -10,6 +10,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useModal } from '@/context/ModalContext';
 import { useRouter } from 'next/navigation';
 
+const API_URL = "http://localhost:8080/api/posts"; // Change if needed
+
 const steps = [
   { 
     title: "Draft your title", 
@@ -43,24 +45,20 @@ const CreatePage = () => {
     images: [],
   });
   const [canProceed, setCanProceed] = useState(false);
-  const { user, isLoggedIn, openLoginModal } = useAuth();
+  const { user, isLoggedIn, openLoginModal, token } = useAuth();
   const router = useRouter();
 
-  // Check if user is logged in
   useEffect(() => {
     if (!isLoggedIn) {
-      // Redirect to explore page and open login modal with error message
       router.push('/explore');
       openLoginModal("You need to log in to create a project.");
     }
   }, [isLoggedIn, router, openLoginModal]);
 
-  // Function to update form data
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Function to check if the current step is valid
   useEffect(() => {
     switch (currentStep) {
       case 0:
@@ -80,37 +78,70 @@ const CreatePage = () => {
     }
   }, [formData, currentStep]);
 
-  const getNextPageTitle = () => {
-    switch (currentStep) {
-      case 0:
-        return "Next: Technologies";
-      case 1:
-        return "Next: Description";
-      case 2:
-        return "Next: Review";
-      case 3:
-        return "Post";
-      default:
-        return "Post";
+  const createPost = async () => {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error("User is not authenticated. Please log in.");
+
+        // First, let's set isPublished to true in the form data
+        const postData = {
+            ...formData,
+            isPublished: true
+        };
+
+        const response = await fetch("http://localhost:8080/api/posts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(postData),
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get("content-type");
+            let errorText;
+            
+            if (contentType && contentType.includes("application/json")) {
+                const errorData = await response.json();
+                errorText = errorData.message || "Failed to create post";
+            } else {
+                errorText = await response.text();
+            }
+            
+            console.error("Server error:", errorText);
+            throw new Error(errorText || "Failed to create post");
+        }
+
+        const data = await response.json();
+        console.log("Post created:", data);
+        router.push('/explore');
+    } catch (error: any) {
+        console.error("Error creating post:", error.message);
+        alert("Error creating post: " + error.message);
+    }
+};
+
+  const handleNextStep = () => {
+    if (currentStep === 3) {
+      createPost();
+    } else {
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
   const stepComponents = [
-    <Step1 key="step1" formData={formData} updateFormData={updateFormData} />,
-    <Step2 key="step2" formData={formData} updateFormData={updateFormData} />,
-    <Step3 key="step3" formData={formData} updateFormData={updateFormData} />,
-    <Step4 key="step4" formData={formData} />,
+    <Step1 key="step1" formData={formData} updateFormData={updateFormData} />, 
+    <Step2 key="step2" formData={formData} updateFormData={updateFormData} />, 
+    <Step3 key="step3" formData={formData} updateFormData={updateFormData} />, 
+    <Step4 key="step4" formData={formData} />
   ];
 
-  // Only render the content if the user is logged in
-  if (!isLoggedIn) {
-    return null;
-  }
+  if (!isLoggedIn) return null;
 
   return (
     <div className="bg-gray-100 flex flex-col items-center px-4 py-6 sm:px-8 sm:py-10">
       <div className="w-full max-w-6xl flex flex-col sm:flex-row sm:justify-between sm:gap-8 mb-[100px]">
-        {/* Left Side - Step Counter & Title */}
         <div className="w-full sm:w-1/2 pr-0 sm:pr-12 mb-6 sm:mb-0">
           <div className="mb-4 text-sm text-gray-500 flex items-center">
             <span className="font-medium text-gray-700">{currentStep + 1}/4</span>
@@ -119,17 +150,13 @@ const CreatePage = () => {
           <h1 className="text-xl sm:text-2xl font-bold leading-relaxed">{steps[currentStep].title}</h1>
           <p className="text-gray-500 text-sm mt-2">{steps[currentStep].description}</p>
         </div>
-
-        {/* Right Side - Step Content */}
         <div className="w-full sm:w-1/2">{stepComponents[currentStep]}</div>
       </div>
-
-      {/* Footer Navigation with validation */}
       <CreateFooter
-        setCurrentStep={setCurrentStep}
         currentStep={currentStep}
-        nextPageTitle={getNextPageTitle()}
+        nextPageTitle={currentStep === 3 ? "Post" : "Next"}
         canProceed={canProceed}
+        handleNextStep={handleNextStep}
       />
     </div>
   );

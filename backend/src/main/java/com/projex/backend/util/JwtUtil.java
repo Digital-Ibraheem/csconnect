@@ -28,7 +28,7 @@ public class JwtUtil {
      */
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("id", user.getId());
+        claims.put("id", user.getId()); // Store userId in claims
         claims.put("username", user.getUsername());
         claims.put("fullName", user.getFullName());
         claims.put("profilePicture", user.getProfilePictureUrl());
@@ -47,6 +47,14 @@ public class JwtUtil {
      */
     public String extractEmail(String token) {
         return extractClaims(token).getSubject();
+    }
+
+    /**
+     * Extracts the user ID from the JWT token.
+     */
+    public Long extractUserId(String token) {
+        Claims claims = extractClaims(token);
+        return claims.get("id", Long.class); // Extract userId from claims
     }
 
     /**

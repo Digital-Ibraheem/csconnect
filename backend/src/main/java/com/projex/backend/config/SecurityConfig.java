@@ -10,11 +10,13 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 public class SecurityConfig {
@@ -43,10 +45,11 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**", "/public/**").permitAll()  //  Allow auth & public routes
                         .requestMatchers("/api/users/check-username").permitAll()
                         .requestMatchers("/api/users/check-email").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll() // Allow GET requests to posts endpoints
                         .anyRequest().authenticated()  //  Secure all other routes
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)) //  Handle unauthorized access
-                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))  //  Use stateless session
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  //  Use stateless session
                 .authenticationProvider(authenticationProvider())  //  Set authentication provider
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) //  Register JWT filter
                 .build();
